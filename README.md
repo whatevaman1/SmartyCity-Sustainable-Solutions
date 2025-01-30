@@ -1,4 +1,4 @@
-# SmartyCity Sustainable Solutions
+# SmartyCity Sustainable Solutions (Hackathon Round 1 Problem Statement)
 
 ## Project Overview
 SmartyCity Sustainable Solutions is a web-based platform designed to promote sustainability through interactive simulations and educational tools. The project focuses on waste management, solar energy, and smart city planning.
