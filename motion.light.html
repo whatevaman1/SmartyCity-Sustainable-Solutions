@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Motion-Sensitive Street Lamps</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #1a202c;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      text-align: center;
+    }
+    .lamp-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 40px;
+    }
+    .card {
+      background-color: #2d3748;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      width: 200px;  /* Set a fixed width for both cards */
+      height: 250px;  /* Set a fixed height for both cards */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .lamp {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      transition: all 0.5s ease;
+    }
+    .button {
+      padding: 10px 20px;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px;
+    }
+    .button:hover {
+      background-color: #357ab8;
+    }
+    .lamp-description {
+      font-size: 14px;
+      color: #888;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Motion-Sensitive Street Lamps</h1>
+    <button class="button" id="start-button">Start Simulation</button>
+    <button class="button" id="stop-button" style="display: none;">Stop Simulation</button>
+    <button class="button" id="home-button">Home</button>
+
+    <div class="lamp-container" id="lamp-container" style="display: none;">
+      <div class="card" id="motion-lamp-card">
+        <div class="lamp" id="motion-lamp" style="background-color: #555;"></div>
+        <p id="motion-lamp-status">Motion Status: Not Detected</p>
+        <p class="lamp-description">Saves energy when no motion is detected.</p>
+      </div>
+      <div class="card" id="normal-lamp-card">
+        <div class="lamp" id="normal-lamp" style="background-color: #FFD700;"></div>
+        <p>Energy Efficiency: Always On</p>
+        <p class="lamp-description">Wastes more energy as it's always on.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const startButton = document.getElementById('start-button');
+    const stopButton = document.getElementById('stop-button');
+    const homeButton = document.getElementById('home-button');
+    const lampContainer = document.getElementById('lamp-container');
+    const motionLamp = document.getElementById('motion-lamp');
+    const normalLamp = document.getElementById('normal-lamp');
+    const motionLampStatus = document.getElementById('motion-lamp-status');
+
+    let simulationRunning = false;
+
+    startButton.addEventListener('click', () => {
+      simulationRunning = true;
+      startButton.style.display = 'none';
+      stopButton.style.display = 'inline-block';
+      lampContainer.style.display = 'flex';
+    });
+
+    stopButton.addEventListener('click', () => {
+      simulationRunning = false;
+      startButton.style.display = 'inline-block';
+      stopButton.style.display = 'none';
+      lampContainer.style.display = 'none';
+    });
+
+    homeButton.addEventListener('click', () => {
+      window.location.href = 'map.html'; // Replace with your homepage URL
+    });
+
+    // Motion lamp events
+    motionLamp.addEventListener('mouseenter', () => {
+      if (simulationRunning) {
+        motionLamp.style.backgroundColor = '#FFD700';
+        motionLamp.style.transform = 'scale(1.2)';
+        motionLampStatus.textContent = 'Motion Status: Detected';
+      }
+    });
+
+    motionLamp.addEventListener('mouseleave', () => {
+      if (simulationRunning) {
+        motionLamp.style.backgroundColor = '#555';
+        motionLamp.style.transform = 'scale(1)';
+        motionLampStatus.textContent = 'Motion Status: Not Detected';
+      }
+    });
+
+    // Normal lamp always on (no motion detection)
+  </script>
+</body>
+</html>

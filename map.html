@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart City Interactive Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    /* General Styles */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(90deg, #d4f1f9, #8fd3f4);
+      color: #f5f5f5;
+    }
+
+    .header {
+      background: #226f9f;
+      font-family: Tahoma, "Trebuchet MS", sans-serif;
+      color: #01090a;
+      padding: 1rem;
+      width: 100%;
+      text-align: center;
+      font-size: 1.5rem;
+    }
+    nav {
+            margin: 10px 0; /* Space between nav bars */
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+        nav li {
+            margin: 0 15px;
+            position: relative;
+        }
+        nav a {
+            text-decoration: none;
+            color: #000000;
+        }
+        nav ul li a:hover{
+            text-decoration: underline;
+        }
+
+    #map-container {
+      position: relative;
+      width: 80%;
+      height: 500px;
+      margin: 2rem auto;
+      border: 2px solid #333;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    #filter-box {
+      position: absolute;
+      top: 10%;
+      right: 2%;
+      background: #1f1f1f;
+      border: 2px solid #00d4ff;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      width: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .filter-btn {
+      background-color: #1f1f1f;
+      color: #f5f5f5;
+      border: 2px solid #00d4ff;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 1rem;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .filter-btn:hover {
+      background-color: #00d4ff;
+      color: #121212;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>Smart City Interactive Map</h1>
+    <marquee> Stay aware, Stay smart</marquee>
+  </header>
+  
+  <nav>
+    <ul>
+      <li><strong><a href="trashbin.html">Smart Bin Game</a></strong></li>
+                    <li><strong><a href="motion.light.html">Motion Sensored light Simulation</a></strong></li>
+                    <li><strong><a href="solar_sim.html">Solar Panel Simulation</a></strong></li>
+                </ul>
+            </nav>
+  <main>
+    <div id="map-container">
+      <div id="map" style="width: 100%; height: 100%;"></div>
+      <div id="filter-box">
+        <button class="filter-btn" data-category="all">Show All</button>
+        <button class="filter-btn" data-category="Solar Panels">Solar Panels</button>
+        <button class="filter-btn" data-category="Smart Bins">Smart Bins</button>
+        <button class="filter-btn" data-category="Public Transport Hub">Public Transport Hubs</button>
+        <button class="filter-btn" data-category="Solar Charging Stations">Solar Charging Stations</button>
+        <button class="filter-btn" data-category="EV Stations">EV Stations</button>
+        <button class="filter-btn" data-category="Motion Detecting Lights">Motion Detecting Lights</button>
+      </div>
+    </div>
+  </main>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // Initialize the map
+    const map = L.map('map').setView([40.73061, -73.935242], 13); // Centered at New York City
+
+    // Add the OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Function to generate random coordinates near a base location
+    function getRandomCoordinates(base, radius = 0.02) {
+      const randomLat = base[0] + (Math.random() * 2 - 1) * radius;
+      const randomLng = base[1] + (Math.random() * 2 - 1) * radius;
+      return [randomLat, randomLng];
+    }
+
+    // Define categories with marker data
+    const categories = [
+      { name: "Solar Panels", count: 6, info: "Renewable energy generation using solar panels.", base: [40.72061, -73.945242], color: "black" },
+      { name: "Smart Bins", count: 15, info: "IoT-enabled bins for waste management and collection monitoring.", base: [40.74061, -73.925242], color: "DarkRed" },
+      { name: "Public Transport Hub", count: 5, info: "Real-time tracking, predictive scheduling, and electrification.", base: [40.73061, -73.935242], color: "blue" },
+      { name: "Solar Charging Stations", count: 8, info: "EV charging using solar energy.", base: [40.75061, -73.955242], color: "DarkOliveGreen" },
+      { name: "EV Stations", count: 10, info: "EV charging stations for sustainable mobility.", base: [40.76061, -73.975242], color: "DarkCyan" },
+      { name: "Motion Detecting Lights", count: 15, info: "Energy-efficient street lights with motion sensors.", base: [40.76002, -73.965229], color: "DarkMagenta" },
+      { name: "Motion Detecting Lights", count: 10, info: "Energy-efficient street lights with motion sensors.", base: [40.76992, -73.965229], color: "DarkMagenta" },
+    ];
+
+    // Store markers by category
+    const markerGroups = {};
+
+    // Add markers to the map
+    categories.forEach(category => {
+      const group = L.layerGroup();
+      markerGroups[category.name] = group;
+
+      for (let i = 0; i < category.count; i++) {
+        const coords = getRandomCoordinates(category.base);
+        const marker = L.circle(coords, {
+          color: category.color,
+          fillColor: category.color,
+          fillOpacity: 0.6,
+          radius: 100
+        }).bindPopup(`<b>${category.name}</b><br>${category.info}`);
+        group.addLayer(marker);
+      }
+
+      group.addTo(map);
+    });
+
+    // Filter markers based on button click
+    document.querySelectorAll('.filter-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        const category = button.getAttribute('data-category');
+        map.eachLayer(layer => {
+          if (layer instanceof L.LayerGroup) {
+            map.removeLayer(layer);
+          }
+        });
+
+        if (category === "all") {
+          Object.values(markerGroups).forEach(group => group.addTo(map));
+        } else {
+          markerGroups[category].addTo(map);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

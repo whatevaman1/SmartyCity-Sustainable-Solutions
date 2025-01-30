@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trash Collector Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to bottom, #87ceeb, #e0f7fa);
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        canvas {
+            border: 5px solid #555;
+            border-radius: 8px;
+            background: url('./trashbin.png') no-repeat center;
+            background-size: 800px 600px;
+        }
+
+        .score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #444;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .game-over {
+            position: absolute;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            text-align: center;
+        }
+
+        .game-over h1 {
+            font-size: 40px;
+            margin-bottom: 20px;
+        }
+
+        .game-over button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background: #ff6f61;
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .game-over button:hover {
+            background: #ff4d4d;
+        }
+
+        .home-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .home-button:hover {
+            background: #388e3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="score">Score: 0%</div>
+    <div class="game-over">
+        <h1>Game Over</h1>
+        <button onclick="restartGame()">Restart</button>
+    </div>
+    <button class="home-button" onclick="goHome()">Home</button>
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.querySelector('.score');
+        const gameOverElement = document.querySelector('.game-over');
+
+        const binImage = new Image();
+        binImage.src = './trashcan.png';
+
+        const trashImages = [
+            './garbagebag.png',
+            './bottle.png',
+            './soda.png'
+        ];
+
+        const bin = {
+            x: canvas.width / 2 - 30,
+            y: canvas.height - 60,
+            width: 80,
+            height: 70,
+            moveSpeed: 100
+        };
+
+        let trash = [];
+        let score = 0;
+        let gameRunning = true;
+
+        function spawnTrash() {
+            const trashImage = new Image();
+            trashImage.src = trashImages[Math.floor(Math.random() * trashImages.length)];
+            trash.push({
+                x: Math.random() * (canvas.width - 30),
+                y: -30,
+                width: 30,
+                height: 50,
+                fallSpeed: 2.0 + Math.random() * 1.0,
+                image: trashImage
+            });
+        }
+
+        function update() {
+            if (!gameRunning) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw bin
+            ctx.drawImage(binImage, bin.x, bin.y, bin.width, bin.height);
+
+            // Update and draw trash
+            for (let i = trash.length - 1; i >= 0; i--) {
+                const t = trash[i];
+                t.y += t.fallSpeed;
+
+                // Check collision with bin
+                if (
+                    t.y + t.height >= bin.y &&
+                    t.x + t.width >= bin.x &&
+                    t.x <= bin.x + bin.width
+                ) {
+                    trash.splice(i, 1);
+                    score += 10; // Each trash collected adds 10%
+                    if (score >= 100) {
+                        alert('Please Empty the TrashCan!');
+                        score = 0; // Reset score
+                    }
+                    scoreElement.textContent = `Score: ${score}%`;
+                } else if (t.y > canvas.height) {
+                    // Remove missed trash
+                    trash.splice(i, 1);
+                    endGame();
+                } else {
+                    // Draw trash
+                    ctx.drawImage(t.image, t.x, t.y, t.width, t.height);
+                }
+            }
+        }
+
+        function endGame() {
+            gameRunning = false;
+            gameOverElement.style.display = 'flex';
+        }
+
+        function restartGame() {
+            trash = [];
+            score = 0;
+            scoreElement.textContent = `Score: ${score}%`;
+            gameRunning = true;
+            gameOverElement.style.display = 'none';
+            gameLoop();
+        }
+
+        function goHome() {
+            window.location.href = 'map.html'; // Replace with your desired home page URL
+        }
+
+        function gameLoop() {
+            update();
+            if (gameRunning) requestAnimationFrame(gameLoop);
+        }
+
+        setInterval(spawnTrash, 1200);
+        gameLoop();
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft' && bin.x > 0) {
+                bin.x -= bin.moveSpeed;
+            } else if (e.key === 'ArrowRight' && bin.x + bin.width < canvas.width) {
+                bin.x += bin.moveSpeed;
+            }
+        });
+    </script>
+</body>
+</html>

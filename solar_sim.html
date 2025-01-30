@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar Panel Simulator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background-color: #121212; /* Dark background */
+      color: #e0e0e0; /* Light text for contrast */
+      transition: background-color 0.5s, color 0.5s;
+    }
+    .container {
+      margin-top: 50px;
+    }
+    #title {
+      font-size: 2.5em;
+      margin: 20px 0;
+      color: #ffa500; /* Orange title color */
+    }
+    #solarPanel {
+      margin: 20px auto;
+      width: 200px;
+      height: 100px;
+      background-color: #2e2e2e; /* Dark gray for solar panel */
+      border: 2px solid #444;
+      border-radius: 8px;
+    }
+    #house {
+      margin: 20px auto;
+      width: 200px;
+      height: 150px;
+      background-color: #3a3a3a; /* Dark gray house during the day */
+      border: 2px solid #555;
+      border-radius: 5px;
+      position: relative;
+      transition: background-color 1s;
+    }
+    #house::after {
+      content: '';
+      width: 0;
+      height: 0;
+      border-left: 100px solid transparent;
+      border-right: 100px solid transparent;
+      border-bottom: 80px solid #3a3a3a;
+      position: absolute;
+      top: -80px;
+      left: 0;
+    }
+    #status {
+      margin: 10px;
+      font-size: 1.2em;
+      color: #ffffff; /* Light status text */
+    }
+    #energyCounter {
+      font-size: 1.5em;
+      margin-top: 10px;
+      color: #ffff00; /* Yellow color for energy text */
+    }
+    #infoBox {
+      margin: 20px auto;
+      padding: 15px;
+      max-width: 400px;
+      background-color: #1e1e1e; /* Darker box for info */
+      border: 2px solid #333;
+      border-radius: 8px;
+      text-align: left;
+      color: #e0e0e0; /* Light gray text */
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 1em;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: #ffffff;
+      transition: background-color 0.3s;
+    }
+    #startButton {
+      background-color: #4caf50; /* Green button for start */
+    }
+    #startButton:hover {
+      background-color: #45a049; /* Darker green on hover */
+    }
+    #dayNightButton {
+      background-color: #ffa500; /* Orange button */
+    }
+    #dayNightButton:hover {
+      background-color: #e69500; /* Darker orange on hover */
+    }
+    #stopButton {
+      background-color: #f44336; /* Red button for stop */
+    }
+    #stopButton:hover {
+      background-color: #d32f2f; /* Darker red on hover */
+    }
+    #homeButton {
+      background-color: #555; /* Gray button for home */
+    }
+    #homeButton:hover {
+      background-color: #444; /* Darker gray on hover */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="title">Solar Simulator</div>
+    <button id="startButton">Start Simulation</button>
+    <button id="dayNightButton" style="display: none;">Switch to Night</button>
+    <button id="stopButton" style="display: none;">Stop Simulation</button>
+    <button id="homeButton">Home</button>
+    <div id="solarPanel" style="display: none;"></div>
+    <div id="house" style="display: none;"></div>
+    <div id="energyCounter" style="display: none;">Stored Energy: 0 kWh</div>
+    <div id="infoBox" style="display: none;">
+      <h3>Why Solar Energy?</h3>
+      <ul>
+        <li><strong>Renewable:</strong> Solar energy is a sustainable source of power that doesn’t deplete the planet’s resources.</li>
+        <li><strong>Environmentally Friendly:</strong> It produces no harmful emissions, unlike fossil fuels.</li>
+        <li><strong>Cost-Effective:</strong> Reduces electricity bills over time as sunlight is free.</li>
+        <li><strong>Energy Independence:</strong> Allows households to rely less on grid power and more on self-generated energy.</li>
+        <li><strong>Low Maintenance:</strong> Solar panels have minimal maintenance costs and long lifespans.</li>
+      </ul>
+    </div>
+    <p id="status">Click "Start Simulation" to begin.</p>
+  </div>
+
+  <script>
+    let isRunning = false;
+    let isDay = true;
+    let storedEnergy = 0;
+    let totalGenerated = 0;
+    let totalUsed = 0;
+
+    const startButton = document.getElementById("startButton");
+    const dayNightButton = document.getElementById("dayNightButton");
+    const stopButton = document.getElementById("stopButton");
+    const homeButton = document.getElementById("homeButton");
+    const solarPanel = document.getElementById("solarPanel");
+    const house = document.getElementById("house");
+    const infoBox = document.getElementById("infoBox");
+    const status = document.getElementById("status");
+    const energyCounter = document.getElementById("energyCounter");
+
+    startButton.addEventListener("click", () => {
+      isRunning = true;
+      startButton.style.display = "none";
+      dayNightButton.style.display = "inline-block";
+      stopButton.style.display = "inline-block";
+      solarPanel.style.display = "block";
+      house.style.display = "block";
+      energyCounter.style.display = "block";
+      infoBox.style.display = "block";
+      updateStatus();
+    });
+
+    dayNightButton.addEventListener("click", () => {
+      isDay = !isDay;
+      document.body.style.backgroundColor = isDay ? "#121212" : "#0f0f0f"; // Day: Dark, Night: Darker
+      dayNightButton.textContent = isDay ? "Switch to Night" : "Switch to Day";
+      updateStatus();
+    });
+
+    stopButton.addEventListener("click", () => {
+      isRunning = false;
+      isDay = true;
+      storedEnergy = 0;
+      totalGenerated = 0;
+      totalUsed = 0;
+
+      startButton.style.display = "inline-block";
+      dayNightButton.style.display = "none";
+      stopButton.style.display = "none";
+      solarPanel.style.display = "none";
+      house.style.display = "none";
+      energyCounter.style.display = "none";
+      infoBox.style.display = "none";
+
+      document.body.style.backgroundColor = "#121212"; // Reset to dark theme
+      status.textContent = "Simulation stopped. Click 'Start Simulation' to restart.";
+    });
+
+    homeButton.addEventListener("click", () => {
+      window.location.href = "map.html"; // Replace with your homepage URL
+    });
+
+    function updateStatus() {
+      if (!isRunning) {
+        status.textContent = "Simulation stopped.";
+        return;
+      }
+
+      if (isDay) {
+        const generated = 10;
+        storedEnergy += generated;
+        totalGenerated += generated;
+        house.style.backgroundColor = "#3a3a3a"; // Dark gray house during the day
+        energyCounter.textContent = `Stored Energy: ${storedEnergy} kWh`;
+        status.textContent = `It's daytime! Solar panels are generating electricity. Total generated: ${totalGenerated} kWh.`;
+      } else {
+        const used = storedEnergy >= 5 ? 5 : storedEnergy; // Use energy if available
+        storedEnergy -= used;
+        totalUsed += used;
+        if (storedEnergy > 0) {
+          house.style.backgroundColor = "#fbc02d"; // Yellow house during the night (lighting up effect)
+        } else {
+          house.style.backgroundColor = "#3a3a3a"; // Gray house if no energy is left
+        }
+        energyCounter.textContent = `Stored Energy: ${storedEnergy} kWh`;
+        status.textContent = `It's nighttime. The house is using electricity. Total used: ${totalUsed} kWh.`;
+      }
+    }
+
+    setInterval(() => {
+      if (isRunning) {
+        updateStatus();
+      }
+    }, 1000); // Update every second
+  </script>
+</body>
+</html>
